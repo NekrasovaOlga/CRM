@@ -61,12 +61,6 @@ const cart = [
 
 {
 
-const modalTitle = document.querySelector('.modal__title');
-const modalForm = document.querySelector('.modal__form');
-const modalDiscountCheck = document.querySelector('.modal__label_discount #discount');
-const modalDiscountInput  = document.querySelector('.modal__input_discount');
-
-
 
 const createRow = ({id, count, description, discont, price, title, units}) => {
     const goods__table = document.querySelector('.goods__table .table__body');
@@ -90,43 +84,103 @@ const createRow = ({id, count, description, discont, price, title, units}) => {
 
   goods__table.insertAdjacentHTML('beforeend', elem)
 }
-
 const renderGoods = cart => {
     const sortRow = cart.map(createRow)
 }
 const formInit = (btnAdd, overlay) => {
-  btnAdd.addEventListener('click', (event) => {
+  const openForm = () => {
     overlay.classList.add('active'); 
+  };
+
+  const closeForm = () => {
+    overlay.classList.remove('active');
+  }
+
+  btnAdd.addEventListener('click', () => {
+    const codeId =  document.querySelector('.vendor-code__id');
+    const randowId = Math.round(Math.random() * 1000000);
+    codeId.textContent = randowId
+    openForm()
   })
 
   overlay.addEventListener('click', (event) => {
     const target = event.target;
     if(!target.closest('.modal') || target.closest('.modal__close')){
-      overlay.classList.remove('active'); 
+      closeForm()
     }
   })
+
+  return {
+    closeForm,
+    openForm,
+  }
 }
- 
-  const init = () => {
+
+const removeRow = (list) => {
+    list.addEventListener('click', (event) => {    
+    if(event.target.closest('.table__btn_del')){
+      const idRow = +event.target.closest('tr').firstElementChild.textContent;
+      const indexRow =  cart.findIndex(elem => elem.id == idRow)
+      const cartDelet = cart.splice(indexRow, 1)
+      event.target.closest('tr').remove()
+    }
+    totalSum(cart)
+    })
+}
+const totalSum = (cartTotal) => {
+ const oldSum = document.querySelector('.cms__total-price');
+ const newSum = cartTotal.reduce((initialValue, currentItem) => {
+  return +currentItem.price + initialValue
+ }, 0);
+
+ oldSum.textContent = `$ ${newSum}`
+}
+
+const formSubmit = (form, closeForm) => {
+  form.total.value = 0
+  form.addEventListener('change', e => {
+    let totalPrice;
+    if(form.discount.checked){
+      form.discount_count.disabled = false
+      totalPrice = form.price.value - (form.price.value * (form.discount_count.value/100))
+    } else {
+      form.discount_count.value = ''
+      form.discount_count.disabled = true
+      totalPrice =  form.price.value
+    }
+    form.total.value = '$ ' + totalPrice
+  })
+
+ form.addEventListener('submit', e => {
+  e.preventDefault();
+
+  const codeId =  document.querySelector('.vendor-code__id');
+  const formData = new FormData(e.target);
+  const newItem = Object.fromEntries(formData);
+
+  newItem.id = codeId.textContent;
+  createRow(newItem)
+  cart.push(newItem)
+
+  form.reset();
+  closeForm();
+
+  totalSum(cart);
+ })
+}
+    const init = () => {
     const btnAdd = document.querySelector('.panel__add-goods');
     const overlay = document.querySelector('.overlay');
+    const form = document.querySelector('.modal__form');
+    const table = document.querySelector('.table');
     overlay.classList.remove('active'); 
 
     const goods = renderGoods(cart);
 
-    const form = formInit(btnAdd, overlay);
-    
-    document.querySelectorAll('.table__btn_del').forEach( btn => {
-      btn.addEventListener('click', (event) => {    
-      if(event.target.closest('.table__btn_del')){
-        const idRow = +event.target.closest('tr').firstElementChild.textContent;
-        const indexRow =  cart.findIndex(elem => elem.id == idRow)
-        const cartDelet = cart.splice(indexRow, 1)
-        console.log(cart)
-        event.target.closest('tr').remove()
-      }
-      })
-    })
+    const {closeForm, openForm} = formInit(btnAdd, overlay);
+    removeRow(table)
+    totalSum(cart)
+    formSubmit(form, closeForm, openForm);
 
   }
   init()
