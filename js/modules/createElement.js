@@ -24,6 +24,16 @@ const createRow = ({id, count, subTotal, price, title, units}) => {
 
   goodsTable.insertAdjacentHTML('beforeend', elem);
 };
+
+const elemCalculation = (cart) => {
+  const table = document.querySelectorAll('.table .table__body tr ');
+  for (let i = 0; i < cart.length; i++) {
+    cart[i].id = i + 1;
+    table[i].firstElementChild.textContent = i + 1;
+    table[i].querySelector('.table__cell-id').textContent = `id: ${i + 1}`;
+  }
+};
+
 const removeRow = (list) => {
   list.addEventListener('click', (event) => {
     if (event.target.closest('.table__btn_del')) {
@@ -33,8 +43,10 @@ const removeRow = (list) => {
       event.target.closest('tr').remove();
     }
     totalSum(cart);
+    elemCalculation(cart);
   });
 };
+
 const renderGoods = (cart) => {
   cart.map(elem.createRow);
 };
