@@ -13,7 +13,7 @@ const cart = [
     units: 'шт',
     images: {
       small: 'img/smrtxiaomi11t-m.jpg',
-      big: 'img/smrtxiaomi11t-b.jpg',
+      big: 'https://mtscdn.ru/upload/iblock/8d8/11.png',
     },
   },
   {

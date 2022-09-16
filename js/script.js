@@ -8,6 +8,7 @@ const init = () => {
   elem.renderGoods(cart);
   const {closeForm, openForm} = formOptions.formInit(btnAdd, overlay);
   elem.removeRow(table);
+  elem.openPicture(table);
   totalSum(cart);
   formOptions.formSubmit(form, closeForm, openForm);
 };

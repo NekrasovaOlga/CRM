@@ -2,7 +2,7 @@ import totalSum from './optionsRow.js';
 import * as elem from './createElement.js';
 import cart from './productList.js';
 
-const createRow = ({id, count, subTotal, price, title, units}) => {
+const createRow = ({id, count, subTotal, price, title, units, images}) => {
   const goodsTable = document.querySelector('.goods__table .table__body');
 
   const elem = `<tr>
@@ -16,7 +16,7 @@ const createRow = ({id, count, subTotal, price, title, units}) => {
     <td class='table__cell'>$${price}</td>
     <td class='table__cell'>$${subTotal}</td>
     <td class='table__cell table__cell_btn-wrapper'>
-      <button class='table__btn table__btn_pic'></button>
+    <button class='table__btn table__btn_pic' data-pic="${images.big}"></button>
       <button class='table__btn table__btn_edit'></button>
       <button class='table__btn table__btn_del'></button>
     </td>
@@ -46,6 +46,34 @@ const removeRow = (list) => {
     elemCalculation(cart);
   });
 };
+// открытие окна
+const windowPicture = (createImg) => {
+  const openWin = open('about:blank', '', 'width=600px, height=800px');
+  const width = (screen.width - 600) / 2;
+  const height = (screen.height - 800) / 2;
+  openWin.moveBy(width, height);
+  openWin.document.body.appendChild(createImg);
+};
+
+// открытие картинки в окне
+const openPicture = (list) => {
+  list.addEventListener('click', e => {
+    if (e.target.closest('.table__btn_pic')) {
+      const imgUrl = e.target.closest('.table__btn_pic').dataset.pic;
+      const createImg = document.createElement('div');
+      createImg.style.cssText = `
+      background: url('${imgUrl}') no-repeat;
+      background-size: contain;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      `;
+      windowPicture(createImg);
+    }
+  });
+};
 
 const renderGoods = (cart) => {
   cart.map(elem.createRow);
@@ -54,5 +82,6 @@ const renderGoods = (cart) => {
 export {
   createRow,
   removeRow,
+  openPicture,
   renderGoods,
 };
