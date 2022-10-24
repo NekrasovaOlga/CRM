@@ -30,8 +30,52 @@ const formInit = (btnAdd, overlay) => {
     openForm,
   };
 };
+const toBase64 = file => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+
+  reader.addEventListener('load', () => {
+    resolve(reader.result);
+  });
+
+  reader.addEventListener('error', err => {
+    reject(err);
+  });
+
+  reader.readAsDataURL(file);
+});
 
 const formSubmit = (form, closeForm) => {
+  const file = document.querySelector('.modal__file');
+  const preview = document.querySelector('.preview');
+  const image = new Image();
+  const buttonSumbit = document.querySelector('.modal__submit');
+  const err = document.createElement('div');
+
+  file.addEventListener('change', async e => {
+    if (file.isDefaultNamespace.length > 0 && file.files[0].size <= 1000000) {
+      preview.style.width = '60px';
+      const src = URL.createObjectURL(file.files[0]);
+      err.style.display = 'none';
+      buttonSumbit.disabled = false;
+      if (!preview.classList.contains('active')) {
+        image.src = src;
+        preview.classList.add('active');
+        preview.append(image);
+      } else {
+        image.src = src;
+      }
+    } else {
+      preview.style.width = '100%';
+      buttonSumbit.disabled = true;
+      image.src = '';
+      err.textContent = 'Изображение не должно превышать размер 1 МБ';
+      err.style.color = 'red';
+      err.style.fontSize = '18px';
+      err.style.display = 'block';
+      preview.append(err);
+    }
+  });
+
   form.total.value = 0;
   form.addEventListener('change', (e) => {
     let totalPrice;
@@ -49,16 +93,21 @@ const formSubmit = (form, closeForm) => {
     form.total.value = '$ ' + totalPrice;
   });
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const codeId = document.querySelector('.vendor-code__id');
     const formData = new FormData(e.target);
     const newItem = Object.fromEntries(formData);
+    const resultImg = await toBase64(newItem.image);
+    newItem.images = {
+      big: resultImg,
+    };
     const subtotal = newItem.price * newItem.count;
     newItem.subTotal = !newItem.discount ? subtotal :
     subtotal - subtotal * (newItem.discount_count / 100);
     newItem.id = codeId.textContent;
+    console.log(newItem);
     elem.createRow(newItem);
     cart.push(newItem);
 

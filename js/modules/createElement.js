@@ -37,9 +37,9 @@ const elemCalculation = (cart) => {
 const removeRow = (list) => {
   list.addEventListener('click', (event) => {
     if (event.target.closest('.table__btn_del')) {
-      const idRow = +event.target.closest('tr').firstElementChild.textContent;
-      const indexRow = cart.findIndex((elem) => elem.id === idRow);
-      const cartDelet = cart.splice(indexRow, 1);
+      //  const idRow = +event.target.closest('tr').firstElementChild.textContent;
+      // const indexRow = cart.findIndex((elem) => elem.id === idRow);
+      // const cartDelet = cart.splice(indexRow, 1);
       event.target.closest('tr').remove();
     }
     totalSum(cart);
