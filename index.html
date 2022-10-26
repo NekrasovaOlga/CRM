@@ -32,7 +32,7 @@
         <div class="goods__panel panel">
           <button class="panel__filter">Фильтр</button>
           <form class="panel__search">
-            <input type="search" class="panel__input" placeholder="Поиск по наименованию и категории">
+            <input type="search" name="search" class="panel__input" placeholder="Поиск по наименованию и категории">
           </form>
           <button class="panel__add-goods">Добавить товар</button>
         </div>
@@ -43,6 +43,7 @@
                 <th class="table__header-cell">№</th>
                 <th class="table__header-cell table__header-cell_left">Наименование</th>
                 <th class="table__header-cell table__header-cell_left">Категория</th>
+                <th class="table__header-cell">Скидка</th>
                 <th class="table__header-cell">ед/изм</th>
                 <th class="table__header-cell">количество</th>
                 <th class="table__header-cell">цена</th>
@@ -68,8 +69,7 @@
     </div>
   </section>
 
-
-  <div class="overlay active">
+  <div class="overlay remove__goods">
     <div class="overlay__modal modal">
       <button class="modal__close">
         <svg width="24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -77,13 +77,27 @@
       </button>
 
       <div class="modal_top">
-        <h2 class="modal__title">Добавить товар</h2>
+        <h2 class="modal__title">Удалить товар?</h2>
+        <button class="modal__submit modal__delete__goods" type="submit">Удалить</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay new__modal">
+    <div class="overlay__modal modal">
+      <button class="modal__close">
+        <svg width="24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="m2 2 20 20M2 22 22 2" stroke="currentColor" stroke-width="3" stroke-linecap="round" /></svg>
+      </button>
+
+      <div class="modal_top">
+        <h2 class="modal__title modal__title__form">Добавить товар</h2>
         <div class="modal__vendor-code vendor-code">
           <p class="vendor-code__wrapper">id: <span class="vendor-code__id">24601654816512</span></p>
         </div>
       </div>
 
-      <form action="https://jsonplaceholder.typicode.com/posts" class="modal__form" method="post">
+      <form action="" class="modal__form" method="post">
         <fieldset class="modal__fieldset">
 
           <label class="modal__label modal__label_name" for="title">
@@ -94,12 +108,12 @@
 
           <label class="modal__label modal__label_category" for="category">
             <span class="modal__text">Категория</span>
-            <input class="modal__input" type="text" name="category" id="category" required>
+            <input class="modal__input" type="text" name="category" id="category" list="category-list" required>
           </label>
 
           <label class="modal__label modal__label_description" for="description">
             <span class="modal__text">Описание</span>
-            <textarea class="modal__input modal__input_textarea" name="description" id="description"></textarea required>
+            <textarea class="modal__input modal__input_textarea" name="description" id="description" required></textarea required>
           </label>
 
           <label class="modal__label modal__label_units" for="units">
@@ -126,22 +140,39 @@
             <input class="modal__input" type="number" name="price" id="price" required>
           </label>
 
-          <div class="preview"></div>
+          <div class="err">Изображение не должно превышать размер 1 МБ</div>
           <label tabindex="0" for="image" class="modal__label modal__label_file">Добавить изображение</label>
           <input class="modal__file visually-hidden" tabindex="-1" type="file" name="image" id="image">
+          <div class="preview">
+            <img src="" alt="" class="img__preview">
+          </div>
         </fieldset>
-
+        
         <div class="modal__footer">
           <label class="modal__total">Итоговая стоимость:
             <output class="modal__total-price" name="total">$ 900.00</output>
           </label>
 
-          <button class="modal__submit" type="submit">Добавить товар</button>
+          <button class="modal__submit modal__goods-submit" type="submit">Добавить товар</button>
         </div>
       </form>
     </div>
   </div>
 
+  <div class="modal__err">
+    <button class="modal__close">
+      <svg width="24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="m2 2 20 20M2 22 22 2" stroke="currentColor" stroke-width="3" stroke-linecap="round" /></svg>
+    </button>
+
+    <svg width="94" height="94" viewBox="0 0 94 94" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 2L92 92" stroke="#D80101" stroke-width="3" stroke-linecap="round"/>
+      <path d="M2 92L92 2" stroke="#D80101" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+      
+    <div class="modal__err-title">Что-то пошло не так</div>
+
+  </div>
 
 </body>
 

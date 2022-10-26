@@ -1,81 +1,75 @@
+import {form, table, images, modalErr} from './getElement.js';
 import totalSum from './optionsRow.js';
 import * as elem from './createElement.js';
-import cart from './productList.js';
+import fetchRequest from './fetchRequest.js';
 
-const formInit = (btnAdd, overlay) => {
-  const openForm = () => {
-    overlay.classList.add('active');
-  };
+const toBase64 = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
 
-  const closeForm = () => {
-    overlay.classList.remove('active');
-  };
+    reader.addEventListener('load', () => {
+      resolve(reader.result);
+    });
 
-  btnAdd.addEventListener('click', () => {
-    const codeId = document.querySelector('.vendor-code__id');
-    const lastElemCart = cart[cart.length - 1].id;
-    codeId.textContent = +lastElemCart + 1;
-    openForm();
+    reader.addEventListener('error', (err) => {
+      reject(err);
+    });
+
+    reader.readAsDataURL(file);
   });
 
-  overlay.addEventListener('click', (event) => {
-    const target = event.target;
-    if (!target.closest('.modal') || target.closest('.modal__close')) {
-      closeForm();
-    }
-  });
-
-  return {
-    closeForm,
-    openForm,
-  };
+const addFile = (src) => {
+  images.src = src;
+  return src;
 };
-const toBase64 = file => new Promise((resolve, reject) => {
-  const reader = new FileReader();
 
-  reader.addEventListener('load', () => {
-    resolve(reader.result);
-  });
+const fileChange = (file) => {
+  const buttonSumbit = document.querySelector('.modal__goods-submit');
+  const err = document.querySelector('.err');
+  if (file.isDefaultNamespace.length > 0 && file.files[0].size <= 1000000) {
+    const src = URL.createObjectURL(file.files[0]);
+    err.style.display = 'none';
+    buttonSumbit.disabled = false;
+    images.src = src;
+  } else {
+    images.src = '';
+    buttonSumbit.disabled = true;
+    err.style.display = 'block';
+  }
+};
 
-  reader.addEventListener('error', err => {
-    reject(err);
-  });
+const falseModal = (err, data) => {
+  if (err !== null) {
+    modalErr.classList.add('active');
+  } else {
+    fetchRequest('goods', {
+      method: 'get',
+      callback: totalSum,
+    });
+    elem.createRow(data);
+  }
 
-  reader.readAsDataURL(file);
-});
-
-const formSubmit = (form, closeForm) => {
-  const file = document.querySelector('.modal__file');
-  const preview = document.querySelector('.preview');
-  const image = new Image();
-  const buttonSumbit = document.querySelector('.modal__submit');
-  const err = document.createElement('div');
-
-  file.addEventListener('change', async e => {
-    if (file.isDefaultNamespace.length > 0 && file.files[0].size <= 1000000) {
-      preview.style.width = '60px';
-      const src = URL.createObjectURL(file.files[0]);
-      err.style.display = 'none';
-      buttonSumbit.disabled = false;
-      if (!preview.classList.contains('active')) {
-        image.src = src;
-        preview.classList.add('active');
-        preview.append(image);
-      } else {
-        image.src = src;
-      }
-    } else {
-      preview.style.width = '100%';
-      buttonSumbit.disabled = true;
-      image.src = '';
-      err.textContent = 'Изображение не должно превышать размер 1 МБ';
-      err.style.color = 'red';
-      err.style.fontSize = '18px';
-      err.style.display = 'block';
-      preview.append(err);
+  modalErr.addEventListener('click', (event) => {
+    const target = event.target;
+    if (target.closest('.modal__close')) {
+      modalErr.classList.remove('active');
     }
   });
+  
+  return false;
+};
 
+const formSubmit = (form, closeForm, status, idGood, imagePic) => {
+  const titleForm = document.querySelector('.modal__title__form');
+  if (idGood) {
+    titleForm.textContent = 'Изменить товар';
+  } else {
+    titleForm.textContent = 'Добавить товар';
+  }
+  const file = document.querySelector('.modal__file');
+  file.addEventListener('change', async (e) => {
+    fileChange(file);
+  });
   form.total.value = 0;
   form.addEventListener('change', (e) => {
     let totalPrice;
@@ -96,29 +90,87 @@ const formSubmit = (form, closeForm) => {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const codeId = document.querySelector('.vendor-code__id');
     const formData = new FormData(e.target);
     const newItem = Object.fromEntries(formData);
-    const resultImg = await toBase64(newItem.image);
-    newItem.images = {
-      big: resultImg,
+
+    const data = {
+      title: newItem.title,
+      description: newItem.description,
+      price: newItem.price,
+      category: newItem.category,
+      discount: !newItem.discount ? 0 : newItem.discount_count,
+      count: newItem.count,
+      units: newItem.units,
     };
-    const subtotal = newItem.price * newItem.count;
-    newItem.subTotal = !newItem.discount ? subtotal :
-    subtotal - subtotal * (newItem.discount_count / 100);
-    newItem.id = codeId.textContent;
-    console.log(newItem);
-    elem.createRow(newItem);
-    cart.push(newItem);
 
-    form.reset();
-    closeForm();
+    if (newItem.image.name !== '') {
+      const resultImg = await toBase64(newItem.image);
+      data.image = resultImg;
+    } else {
+      data.image = imagePic;
+    }
 
-    totalSum(cart);
+    const link = idGood ? `goods/${idGood}` : 'goods';
+    const result = await fetchRequest(link, {
+      method: status,
+      body: data,
+      callback: falseModal,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    console.log(result);
+
+    if (result) {
+      closeForm();
+      form.reset();
+    }
   });
 };
 
-export {
-  formInit,
-  formSubmit,
+const formInit = (btnAdd, overlay, id, btnImage) => {
+  const openForm = () => {
+    overlay.classList.add('active');
+  };
+
+  const closeForm = () => {
+    overlay.classList.remove('active');
+    form.reset();
+    images.src = '';
+  };
+  openForm();
+
+
+  if (btnAdd.classList.contains('panel__add-goods')) {
+    formSubmit(form, closeForm, 'post');
+  } else {
+    formSubmit(form, closeForm, 'PATCH', id, btnImage);
+  }
+
+  overlay.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!target.closest('.modal') || target.closest('.modal__close')) {
+      closeForm();
+    }
+  });
+
+  return {
+    closeForm,
+    openForm,
+  };
 };
+
+const formSearch = () => {
+  const searchInput = document.querySelector('.panel__input');
+  searchInput.addEventListener('input', () => {
+    setTimeout(() => {
+      table.innerHTML = '';
+      fetchRequest(`goods?search=${searchInput.value}`, {
+        method: 'get',
+        callback: elem.renderGoods,
+      });
+    }, 300);
+  });
+};
+
+export {formInit, formSubmit, addFile, formSearch};
